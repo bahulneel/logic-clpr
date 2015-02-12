@@ -20,22 +20,29 @@
 
 (defn naturalc
   [n]
-  (fd/in n (fd/interval 0 (Math/pow 2 23))))
+  (fd/in n (fd/interval 0 (int (Math/pow 2 23)))))
 
 (defn signedno
   [s m n]
-  (l/all (boolc s)
-         (naturalc m)
-         (l/== [s m] n)))
+  (l/fresh [s' m']
+    (boolc s)
+    (naturalc m)
+    (boolc s')
+    (naturalc m')
+    (fd/eq (= s' s)
+           (= m' m))
+    (l/== [s' m'] n)))
 
 (defn integer
   [s i]
-  (l/project [s i]
-             (if (l/lvar? s)
-               (if (l/lvar? i)
-                 l/succeed
-                 (l/== s (i->s i)))
-               (l/== i (s->i s)))))
+  (l/fresh [ss sm]
+    (signedno ss sm s)
+    (l/project [ss sm i]
+               (if-not (l/lvar? i)
+                 (l/== [ss sm] (i->s i))
+                 (if-not (or (l/lvar? ss) (l/lvar? sm))
+                   (l/== i (s->i [ss sm]))
+                   l/fail)))))
 
 (defn addo
   [x y z]
@@ -62,3 +69,35 @@
 (defn subo
   [x y z]
   (addo z y x))
+
+(defn multo
+  [x y z]
+  (l/fresh [xs xm
+            ys ym
+            zs zm]
+    (signedno xs xm x)
+    (signedno ys ym y)
+    (signedno zs zm z)
+    (fd/eq
+     (<= xm zm)
+     (<= ym zm)
+     (= zm (* xm ym)))
+    (l/conde [(fd/eq (= xs ys)
+                     (= xs 0)
+                     (= zs 0))]
+             [(fd/eq (= xs ys)
+                     (= xs 1)
+                     (= zs 0))]
+             [(fd/eq (= 1 xs)
+                     (= 0 ys)
+                     (= zs 1))]
+             [(fd/eq (= 0 xs)
+                     (= 1 ys)
+                     (= zs 1))])))
+
+(defn divo
+  [x y z]
+  (l/fresh [ys ym]
+    (signedno ys ym y)
+    (fd/!= 0 ym)
+    (multo z y x)))

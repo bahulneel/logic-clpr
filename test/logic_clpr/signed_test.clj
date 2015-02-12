@@ -28,47 +28,47 @@
              (-> [1 1] s->i) => -1
              (-> [1 101] s->i) => -101))
 
-(facts "About the integero"
+(facts "About the integer"
        (fact "For definate i"
-             (first (run 1 [q] (integero q 1))) => [0 1]
-             (first (run 1 [q] (integero q -11))) => [1 11])
+             (first (run 1 [q] (integer q 1))) => [0 1]
+             (first (run 1 [q] (integer q -11))) => [1 11])
        (fact "For definite s"
-             (first (run 1 [q] (integero [0 1] q))) => 1
-             (first (run 1 [q] (integero [1 11] q))) => -11)
-       (fact "For unknown i,s"
-             (first (run 1 [s i] (integero s i))) => '[_0 _1])
+             (first (run 1 [q] (integer [0 1] q))) => 1
+             (first (run 1 [q] (integer [1 11] q))) => -11)
+       (fact "For unknown i,s we can do nothing"
+             (first (run 1 [i] (fresh [s] (integer s i)))) => nil?)
        (fact "it is transative"
              (first (run 1 [q]
                       (fresh [x]
-                        (integero x 123)
-                        (integero x q)))) => 123
+                        (integer x 123)
+                        (integer x q)))) => 123
              (first (run 1 [q]
                       (fresh [x]
-                        (integero [1 123] x)
-                        (integero q x)))) => [1 123]))
+                        (integer [1 123] x)
+                        (integer q x)))) => [1 123]))
 
 (facts "About signedno"
        (fact "We can unpack an integer"
              (first (run 1 [q]
                       (fresh [s m n]
-                        (integero n 1)
+                        (integer n 1)
                         (signedno s m n)
                         (l/== q [s m])))) => [0 1])
        (fact "We can unpack a signed"
              (first (run 1 [q]
                       (fresh [n i]
                         (signedno 1 1 n)
-                        (integero n i)
+                        (integer n i)
                         (l/== q i)))) => -1))
 
 (defn do-op
   [op x y]
   (first (run 1 [z]
            (fresh [x' y' z']
-             (integero x' x)
-             (integero y' y)
+             (integer x' x)
+             (integer y' y)
              (op x' y' z')
-             (integero z' z)))))
+             (integer z' z)))))
 
 (facts "About addition"
        (let [add (partial do-op addo)]
@@ -87,10 +87,10 @@
          (fact "Can run backwards"
                (first (run 1 [y]
                         (fresh [x' y' z']
-                          (integero x' -1)
-                          (integero z' 3)
+                          (integer x' -1)
+                          (integer z' 3)
                           (addo x' y' z')
-                          (integero y' y)))) => 4)))
+                          (integer y' y)))) => 4)))
 
 (facts "About subtraction"
        (let [sub (partial do-op subo)]
@@ -98,3 +98,45 @@
          (sub 1 3) => -2
          (sub -1 3) => -4
          (sub -1 -3) => 2))
+
+(facts about "Multiplication"
+       (let [mult (partial do-op multo)]
+         (fact "Multiply by 1 leaves the original"
+               (mult 1 1) => 1
+               (mult 1 2) => 2
+               (mult 2 1) => 2)
+         (fact "Multiply by -1 changes the sign"
+               (mult 123 -1) => -123
+               (mult -1 51) => -51
+               (mult -1 -3) => 3)))
+
+(facts about "Division"
+       (let [div (partial do-op divo)]
+         (fact "Divide by 1 leaves the original"
+               (div 1 1) => 1
+               (div 3 1) => 3
+               (div 27 1) => 27)
+         (fact "Divide by -1 changes the sign"
+               (div 1 -1) => -1
+               (div 3 -1) => -3
+               (div 27 -1) => -27)
+         (fact "Divide by zero fails"
+               (div 1 0) => nil)
+         (fact "Can divide a number by its factor"
+               (div 4 2) => 2
+               (div 27 3) => 9)
+         (fact "A number divided by itself is 1"
+               (div 4 4) => 1)
+         (fact "Cannot divide by a non-factor"
+               (div 4 3) => nil
+               (div -4 -3) => nil
+               (div -4 3) => nil
+               (div 4 -3) => nil)))
+
+(facts "About running mult backwards"
+       (fact "Can get the square root"
+               (run 2 [x]
+                 (fresh [x2' x']
+                   (integer x2' 4)
+                   (multo x' x' x2')
+                   (l/== x' x))) => [[0 2] [1 2]]))

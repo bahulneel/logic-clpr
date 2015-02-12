@@ -1,4 +1,4 @@
-(ns triangles.fixed
+(ns fixed
   (:require [clojure.core.logic :as l]
             [clojure.core.logic.fd :as fd]))
 
