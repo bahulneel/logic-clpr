@@ -135,8 +135,68 @@
 
 (facts "About running mult backwards"
        (fact "Can get the square root"
-               (run 2 [x]
-                 (fresh [x2' x']
-                   (integer x2' 4)
-                   (multo x' x' x2')
-                   (l/== x' x))) => [[0 2] [1 2]]))
+             (->> (run 2 [x]
+                    (fresh [x2']
+                      (integer x2' 4)
+                      (multo x x x2')))
+                  (map s->i)) => [2 -2]))
+
+(defn do-test
+  [t x y]
+  (first (run 1 [z]
+           (fresh [x' y']
+             (integer x' x)
+             (integer y' y)
+             (t x' y')
+             (l/== z true)))))
+
+(facts "About equality"
+       (let [eq (partial do-test equalo)]
+         (eq 0 0) => true
+         (eq 1 2) => nil?
+         (eq -1 -1) => true
+         (eq -1 1) => nil?))
+
+(facts "About greater than"
+       (let [gt (partial do-test gto)]
+         (gt 0 0) => nil?
+         (gt 1 2) => nil?
+         (gt -1 -1) => nil?
+         (gt -2 -1) => nil?
+         (gt 2 1) => true
+         (gt 0 -1) => true
+         (gt -1 0) => nil?
+         (gt -1 -2) => true))
+
+(facts "About greater than or equal"
+       (let [gte (partial do-test gteo)]
+         (gte 0 0) => true
+         (gte 1 2) => nil?
+         (gte -1 -1) => true
+         (gte -2 -1) => nil?
+         (gte 2 1) => true
+         (gte 0 -1) => true
+         (gte -1 0) => nil?
+         (gte -1 -2) => true))
+
+(facts "About less than"
+       (let [lt (partial do-test lto)]
+         (lt 0 0) => nil?
+         (lt 1 2) => true
+         (lt -1 -1) => nil?
+         (lt -2 -1) => true
+         (lt 2 1) => nil?
+         (lt 0 -1) => nil?
+         (lt -1 0) => true
+         (lt -1 -2) => nil?))
+
+(facts "About less or equal than"
+       (let [lte (partial do-test lteo)]
+         (lte 0 0) => true
+         (lte 1 2) => true
+         (lte -1 -1) => true
+         (lte -2 -1) => true
+         (lte 2 1) => nil?
+         (lte 0 -1) => nil?
+         (lte -1 0) => true
+         (lte -1 -2) => nil?))

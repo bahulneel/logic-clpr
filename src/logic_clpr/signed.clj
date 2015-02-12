@@ -24,14 +24,12 @@
 
 (defn signedno
   [s m n]
-  (l/fresh [s' m']
+  (l/all
     (boolc s)
     (naturalc m)
-    (boolc s')
-    (naturalc m')
-    (fd/eq (= s' s)
-           (= m' m))
-    (l/== [s' m'] n)))
+    (l/conde [(fd/eq (= s 0) (>= m 0))]
+             [(fd/eq (= s 1) (> m 0))])
+    (l/== [s m] n)))
 
 (defn integer
   [s i]
@@ -101,3 +99,47 @@
     (signedno ys ym y)
     (fd/!= 0 ym)
     (multo z y x)))
+
+(defn equalo
+  [x y]
+  (l/fresh [xs xm
+            ys ym]
+    (signedno xs xm x)
+    (signedno ys ym y)
+    (fd/eq
+     (= xs ys)
+     (= xm ym))))
+
+(defn gto
+  [x y]
+  (l/fresh [xs xm
+            ys ym]
+    (signedno xs xm x)
+    (signedno ys ym y)
+    (l/conde [(fd/eq
+               (= xs ys)
+               (= xs 0)
+               (> xm ym))]
+             [(fd/eq
+               (= xs ys)
+               (= xs 1)
+               (< xm ym))]
+             [(fd/eq
+               (!= xs ys)
+               (< xs ys))])))
+
+(defn gteo
+  [x y]
+  (l/conde
+   [(gto x y)]
+   [(equalo x y)]))
+
+(defn lto
+  [x y]
+  (gto y x))
+
+(defn lteo
+  [x y]
+  (l/conde
+   [(lto x y)]
+   [(equalo x y)]))
