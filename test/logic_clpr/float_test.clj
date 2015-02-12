@@ -76,7 +76,43 @@
          first)))
 
 (facts "About addition"
-       (let [add (partial do-op addo)]
-         (add 1 2) => 3.0
-         (add 1 -2) => -1.0
-         (add 1.1 2.2) => 3.3))
+       (fact "We can run forwards"
+             (let [add (partial do-op addo)]
+               (add 1 2) => 3.0
+               (add 1 -2) => -1.0
+               (add 1.1 220) => 221.1))
+       (fact "We can run backwards"
+             (let [x (r->f 100)
+                   z (r->f 0.1)]
+               (->> (run 1 [y]
+                      (addo x y z))
+                    (map f->r)
+                    first) => -99.9)))
+
+(facts "About subtraction"
+       (fact "We can run forwards"
+             (let [sub (partial do-op subo)]
+               (sub 1 2) => -1.0
+               (sub 1 -2) => 3.0
+               (sub 1.1 220) => -218.9))
+       (fact "We can run backwards"
+             (let [x (r->f 99)
+                   z (r->f 0.1)]
+               (->> (run 1 [y]
+                      (subo x y z))
+                    (map f->r)
+                    first) => 98.9)))
+
+(facts "About multiplication"
+       (fact "We can run forwards"
+             (let [mult (partial do-op multo)]
+               (mult 1 2) => 2.0
+               (mult 1 -2) => -2.0
+               (mult 1.11 220) => 244.2))
+       (fact "We can run backwards"
+             (let [x (r->f 2.5)
+                   z (r->f 100)]
+               (->> (run 1 [y]
+                      (multo x y z))
+                    (map f->r)
+                    first) => 98.9)))

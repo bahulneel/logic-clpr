@@ -68,6 +68,31 @@
   [x y z]
   (addo z y x))
 
+(defn abso
+  [x y]
+  (l/fresh [s m]
+    (signedno s m x)
+    (signedno 0 m y)))
+
+(defn expo
+  [m e o]
+  (l/fresh [zero one]
+    (signedno 0 0 zero)
+    (signedno 0 1 one)
+    (l/conde
+     [(equalo e zero)
+      (l/== one o)]
+     [(gto e zero)
+      (l/fresh [e' r]
+        (subo e one e')
+        (expo m e' r)
+        (multo m r o))]
+     [(lto e zero)
+      (l/fresh [m' r]
+        (abso m m')
+        (expo m e r)
+        (divo one r o))])))
+
 (defn multo
   [x y z]
   (l/fresh [xs xm
